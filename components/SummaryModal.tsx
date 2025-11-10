@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { BouquetType, Flower, Foliage, SelectedFlower } from '../types';
-import { CalendarIcon, PhoneIcon, XIcon, CheckCircleIcon } from './Icons';
+import { BouquetType, Foliage, SelectedFlower } from '../types';
+import { CalendarIcon, PhoneIcon, XIcon, UserIcon } from './Icons';
 
 interface SummaryData {
     bouquet: BouquetType | null;
@@ -17,13 +16,14 @@ interface SummaryModalProps {
     onClose: () => void;
     summary: SummaryData;
     apiUrl: string;
+    onSuccess: () => void;
 }
 
-const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, apiUrl }) => {
+const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, apiUrl, onSuccess }) => {
+    const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [deliveryDate, setDeliveryDate] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     if (!isOpen) return null;
@@ -34,19 +34,18 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         setSubmitError(null);
 
         const payload = {
+            name_cliente: name,
             phone,
             deliveryDate,
             summary
         };
 
         try {
-            // Este es el método más robusto para enviar datos a Apps Script desde un navegador.
-            // Se envía como text/plain para evitar la comprobación CORS "preflight".
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 redirect: "follow",
                 body: JSON.stringify(payload),
-                headers: {
+                 headers: {
                   "Content-Type": "text/plain;charset=utf-8",
                 },
             });
@@ -58,7 +57,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
             const result = await response.json();
             
             if (result.status === 'success') {
-                setSubmitted(true);
+                onSuccess(); // Call the parent success handler
             } else {
                 throw new Error(result.message || 'El servidor devolvió un error.');
             }
@@ -78,21 +77,11 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
                     <XIcon className="w-6 h-6" />
                 </button>
                 
-                {submitted ? (
-                    <div className="p-8 text-center flex flex-col items-center">
-                        <CheckCircleIcon className="w-24 h-24 text-green-500 mb-4"/>
-                        <h2 className="text-2xl font-bold text-gray-100 mb-2">¡Solicitud Enviada!</h2>
-                        <p className="text-gray-300 mb-6">Gracias por tu pedido. Nos pondremos en contacto contigo pronto para confirmar los detalles.</p>
-                        <button onClick={onClose} className="px-6 py-2 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors">
-                            Entendido
-                        </button>
-                    </div>
-                ) : (
                 <>
                     <div className="p-8">
                         <h2 className="text-3xl font-bold text-center text-gray-100 mb-6">Resumen de tu Ramo</h2>
                         <div className="max-h-[30vh] overflow-y-auto space-y-4 pr-2 text-sm text-gray-200">
-                            {summary.bouquet && <p><b className="text-white">Ramo:</b> {summary.bouquet.name} - S/{summary.bouquet.price.toFixed(2)}</p>}
+                            {summary.bouquet && <p><b className="text-white">Ramo:</b> {summary.bouquet.name}</p>}
                             <div>
                                 <b className="text-white">Flores:</b>
                                 {summary.flowers.length > 0 ? (
@@ -120,6 +109,13 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
                         <h3 className="text-xl font-semibold mb-4 text-gray-200">Completa tu solicitud</h3>
                         <div className="space-y-4">
                              <div>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-300">Nombres</label>
+                                <div className="relative mt-1">
+                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} required className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-600 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-[#DCBBA0] focus:border-[#DCBBA0] transition" />
+                                </div>
+                            </div>
+                             <div>
                                 <label htmlFor="phone" className="block text-sm font-medium text-gray-300">Número de Teléfono</label>
                                 <div className="relative mt-1">
                                     <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -140,7 +136,6 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
                         </button>
                     </form>
                 </>
-                )}
             </div>
         </div>
     );

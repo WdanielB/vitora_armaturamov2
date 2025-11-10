@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Flower, SelectedFlower } from '../types';
 import { PlusIcon, MinusIcon } from './Icons';
@@ -63,7 +64,7 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
                 className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
                 style={{ backgroundImage: `url(${backgroundImageURL})` }}
             >
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
             </div>
         )}
 

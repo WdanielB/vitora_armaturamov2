@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { BouquetType, Flower, Foliage, SelectedFlower } from './types';
 import Header from './components/Header';
@@ -6,11 +5,9 @@ import SectionWrapper from './components/SectionWrapper';
 import ItemCard from './components/ItemCard';
 import DedicationPreviewModal from './components/DedicationPreviewModal';
 import SummaryModal from './components/SummaryModal';
-import { SpotifyIcon, LinkIcon, InfoIcon, ShoppingCartIcon, TagIcon } from './components/Icons';
+import { SpotifyIcon, LinkIcon, InfoIcon, ShoppingCartIcon, TagIcon, CheckCircleIcon } from './components/Icons';
 import FlowerSelector from './components/FlowerSelector';
 
-// IMPORTANTE: Reemplaza esta URL con la URL de tu aplicación web de Google Apps Script.
-// OBTENLA DEL PASO 6 DE LAS INSTRUCCIONES DE CONFIGURACIÓN DEL BACKEND que te proporcioné.
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybSjsBMqPN5aEB6FMDzKlBTEeK8xje2LdYsIR7y-CXRpvI00uGJ-uOaPuBUMq5SWtKkA/exec';
 
 const App: React.FC = () => {
@@ -32,11 +29,11 @@ const App: React.FC = () => {
     const [openFlower, setOpenFlower] = useState<string | null>(null);
     const [isDedicationModalOpen, setDedicationModalOpen] = useState(false);
     const [isSummaryModalOpen, setSummaryModalOpen] = useState(false);
+    const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Usamos POST para obtener los datos y evitar problemas de CORS con Google Apps Script.
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     redirect: 'follow',
@@ -51,7 +48,6 @@ const App: React.FC = () => {
                 }
                 const data = await response.json();
 
-                // Comprobamos si el script devolvió un error en su respuesta.
                 if (data.status === 'error') {
                     throw new Error(`Error del script: ${data.message}`);
                 }
@@ -68,6 +64,25 @@ const App: React.FC = () => {
         };
         fetchData();
     }, []);
+
+    const resetState = () => {
+        setCurrentStep(1);
+        setSelectedBouquet(null);
+        setSelectedFlowers(new Map());
+        setSelectedFoliage(new Map());
+        setDedication('');
+        setSpotifyLink('');
+        setTotalPrice(null);
+        setOpenFlower(null);
+        setDedicationModalOpen(false);
+        setSummaryModalOpen(false);
+        setSubmissionSuccess(false);
+    };
+
+    const handleSubmissionSuccess = () => {
+        setSummaryModalOpen(false);
+        setSubmissionSuccess(true);
+    };
     
     const groupedFlowers = useMemo(() => {
         return flowersData.reduce((acc, flower) => {
@@ -162,6 +177,22 @@ const App: React.FC = () => {
 
     if (error) {
         return <div className="min-h-screen flex items-center justify-center text-xl text-red-400 p-4 text-center">{error}</div>;
+    }
+
+    if (submissionSuccess) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
+                <CheckCircleIcon className="w-24 h-24 text-green-400 mb-6"/>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-100 mb-3">Solicitud en Proceso</h1>
+                <p className="text-lg text-gray-300 mb-8 max-w-md">Gracias por tu pedido. Nos pondremos en contacto contigo a la brevedad para coordinar los detalles de la entrega y el pago.</p>
+                <button 
+                    onClick={resetState}
+                    className="px-8 py-3 rounded-full font-bold text-gray-800 bg-[#DCBBA0] shadow-md hover:brightness-95 transition"
+                >
+                    Hacer Nueva Solicitud
+                </button>
+            </div>
+        );
     }
 
     return (
@@ -334,6 +365,7 @@ const App: React.FC = () => {
                 onClose={() => setSummaryModalOpen(false)}
                 summary={summaryData}
                 apiUrl={APPS_SCRIPT_URL}
+                onSuccess={handleSubmissionSuccess}
             />
         </div>
     );
