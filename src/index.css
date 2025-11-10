@@ -4,21 +4,6 @@
 
 body {
     background-color: #1E212B;
-    background-image: url('https://img.freepik.com/foto-gratis/primer-plano-rosa-roja-rocio-parte-superior-negra_181624-28079.jpg?semt=ais_hybrid&w=740&q=80');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
     color: #f3f4f6;
     font-family: 'Poppins', sans-serif;
-}
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: -1;
 }
