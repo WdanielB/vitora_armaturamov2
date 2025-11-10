@@ -1,100 +1,45 @@
+
 import React from 'react';
-import { XIcon } from './Icons';
+import { SpotifyIcon, XIcon } from './Icons';
 
 interface DedicationPreviewModalProps {
     isOpen: boolean;
     onClose: () => void;
     dedication: string;
-    onDedicationChange: (value: string) => void;
-    onGenerate: () => void;
-    suggestions: string[];
-    isLoading: boolean;
-    error: string | null;
+    spotifyLink: string;
 }
 
-const DedicationPreviewModal: React.FC<DedicationPreviewModalProps> = ({
-    isOpen,
-    onClose,
-    dedication,
-    onDedicationChange,
-    onGenerate,
-    suggestions,
-    isLoading,
-    error
-}) => {
+const DedicationPreviewModal: React.FC<DedicationPreviewModalProps> = ({ isOpen, onClose, dedication, spotifyLink }) => {
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div 
-                className="relative bg-[#2a2e3c] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all p-8" 
-                onClick={e => e.stopPropagation()}
-            >
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition z-10">
+            <div className="relative w-full max-w-sm" onClick={e => e.stopPropagation()}>
+                <button onClick={onClose} className="absolute -top-3 -right-3 bg-white/20 backdrop-blur-sm rounded-full p-1.5 text-white hover:bg-white/30 transition z-20">
                     <XIcon className="w-6 h-6" />
                 </button>
                 
-                <h2 className="text-3xl font-bold text-center text-gray-100 mb-6">Dedicatoria</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Textarea for writing */}
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-200 mb-2">Escribe tu Mensaje</h3>
-                        <textarea
-                            value={dedication}
-                            onChange={e => onDedicationChange(e.target.value)}
-                            placeholder="Unas palabras desde el corazón..."
-                            rows={8}
-                            className="w-full bg-gray-900/50 border border-gray-600 text-white placeholder-gray-400 rounded-lg p-3 focus:ring-2 focus:ring-[#DCBBA0] focus:border-[#DCBBA0] transition"
-                        />
-                    </div>
-
-                    {/* AI Suggestions */}
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold text-gray-200">Sugerencias con IA</h3>
-                            <button
-                                onClick={onGenerate}
-                                disabled={isLoading}
-                                className="bg-[#DCBBA0] text-gray-800 text-sm font-bold py-1 px-4 rounded-md hover:brightness-95 transition disabled:opacity-50"
-                            >
-                                {isLoading ? 'Generando...' : 'Generar'}
-                            </button>
-                        </div>
+                <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+                    <img 
+                        src="https://cdn.shopify.com/s/files/1/0649/4083/4883/files/imagen_2025-11-10_133538983.png?v=1762799742" 
+                        alt="Vista previa de dedicatoria" 
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 p-8 flex flex-col justify-between bg-black/30">
+                        <p className="text-white text-lg italic whitespace-pre-wrap leading-relaxed shadow-text">
+                            {dedication || "Aquí aparecerá tu mensaje especial."}
+                        </p>
                         
-                        <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-3 h-[218px] flex flex-col">
-                            {isLoading && (
-                                <div className="flex-grow flex items-center justify-center">
-                                    <p className="text-gray-400 animate-pulse">Buscando inspiración...</p>
+                        {spotifyLink && (
+                            <div className="mt-6 flex items-center gap-4 text-white">
+                                <SpotifyIcon className="w-10 h-10 flex-shrink-0" />
+                                <div>
+                                    <p className="font-semibold shadow-text">Una canción para ti</p>
+                                    <p className="text-xs opacity-80 shadow-text">Escanea el código para escucharla</p>
                                 </div>
-                            )}
-                            {error && !isLoading && (
-                                <div className="flex-grow flex items-center justify-center text-center">
-                                    <p className="text-red-400 text-sm">{error}</p>
-                                </div>
-                            )}
-                            {!isLoading && !error && suggestions.length > 0 && (
-                                <ul className="space-y-2 text-gray-300 text-sm">
-                                    {suggestions.map((s, i) => (
-                                        <li key={i} className="p-2 rounded-md hover:bg-white/10 transition cursor-pointer" onClick={() => onDedicationChange(s)}>
-                                            "{s}"
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            {!isLoading && !error && suggestions.length === 0 && (
-                                <div className="flex-grow flex items-center justify-center text-center">
-                                    <p className="text-gray-400">Haz clic en "Generar" para obtener ideas.</p>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
-                </div>
-
-                <div className="mt-8 text-center">
-                    <button onClick={onClose} className="bg-gray-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-500 transition">
-                        Cerrar
-                    </button>
                 </div>
             </div>
         </div>
