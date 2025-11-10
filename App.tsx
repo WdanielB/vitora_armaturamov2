@@ -237,7 +237,7 @@ const App: React.FC = () => {
                                 {totalPrice !== null && (
                                     <div className="text-xl sm:text-2xl font-bold text-white bg-gray-900/50 px-4 py-2 sm:px-6 sm:py-3 rounded-full flex items-center gap-2 order-first sm:order-none w-full sm:w-auto justify-center">
                                         <TagIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#DCBBA0]" />
-                                        <span>Total: ${totalPrice.toFixed(2)}</span>
+                                        <span>Total: S/{totalPrice.toFixed(2)}</span>
                                     </div>
                                 )}
                                 <button

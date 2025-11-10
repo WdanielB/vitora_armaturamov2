@@ -57,7 +57,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary })
                     <div className="p-8">
                         <h2 className="text-3xl font-bold text-center text-gray-100 mb-6">Resumen de tu Ramo</h2>
                         <div className="max-h-[30vh] overflow-y-auto space-y-4 pr-2 text-sm text-gray-200">
-                            {summary.bouquet && <p><b className="text-white">Ramo:</b> {summary.bouquet.name} - ${summary.bouquet.price.toFixed(2)}</p>}
+                            {summary.bouquet && <p><b className="text-white">Ramo:</b> {summary.bouquet.name} - S/{summary.bouquet.price.toFixed(2)}</p>}
                             <div>
                                 <b className="text-white">Flores:</b>
                                 {summary.flowers.length > 0 ? (
@@ -78,7 +78,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary })
                             {summary.spotifyLink && <p><b className="text-white">Spotify:</b> Enlace incluido</p>}
                         </div>
                         <div className="mt-6 pt-4 border-t border-gray-700 text-right">
-                           <p className="text-2xl font-bold text-gray-100">Total: <span className="text-[#DCBBA0]">${summary.totalPrice?.toFixed(2)}</span></p>
+                           <p className="text-2xl font-bold text-gray-100">Total: <span className="text-[#DCBBA0]">S/{summary.totalPrice?.toFixed(2)}</span></p>
                         </div>
                     </div>
                     <form onSubmit={handleSubmit} className="p-8 bg-[#1E212B] rounded-b-2xl">
