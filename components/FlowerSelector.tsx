@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Flower, SelectedFlower } from '../types';
 import { PlusIcon, MinusIcon } from './Icons';
@@ -13,6 +11,18 @@ interface FlowerSelectorProps {
   onToggle: () => void;
 }
 
+// Helper to determine if a hex color is light or dark
+const isColorLight = (hexColor: string): boolean => {
+    const color = hexColor.substring(1); // strip #
+    const rgb = parseInt(color, 16); // convert rrggbb to decimal
+    const r = (rgb >> 16) & 0xff; // extract red
+    const g = (rgb >> 8) & 0xff; // extract green
+    const b = (rgb >> 0) & 0xff; // extract blue
+    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+    return luma > 128;
+};
+
+
 const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, selectedFlowers, onQuantityChange, isOpen, onToggle }) => {
   const findInitialSelected = () => {
     for (const variety of varieties) {
@@ -24,13 +34,13 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
   };
 
   const [activeVariety, setActiveVariety] = useState<Flower>(varieties[0]);
-
+  
+  // This effect now ONLY runs when the accordion is opened, preventing the bug.
   useEffect(() => {
-    // Ensure activeVariety is set once varieties are loaded
-    if (varieties.length > 0) {
+    if (isOpen && varieties.length > 0) {
         setActiveVariety(findInitialSelected());
     }
-  }, [isOpen, selectedFlowers, varieties]);
+  }, [isOpen, varieties]);
 
 
   if (!activeVariety) {
@@ -92,6 +102,7 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
                                 {varieties.map(variety => {
                                     const varietyQuantity = selectedFlowers.get(variety.id)?.quantity || 0;
                                     const isWhite = variety.hex_color.toUpperCase() === '#FFFFFF';
+                                    const textColor = isColorLight(variety.hex_color) ? 'text-black' : 'text-white';
                                     return (
                                         <button
                                           key={variety.id}
@@ -101,7 +112,7 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
                                           aria-label={`Seleccionar ${flowerName} color ${variety.color}`}
                                         >
                                           {varietyQuantity > 0 && (
-                                              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-black bg-white/70 rounded-full">
+                                              <span className={`absolute inset-0 flex items-center justify-center text-sm font-bold drop-shadow-sm ${textColor}`}>
                                                   {varietyQuantity}
                                               </span>
                                           )}
