@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Flower, SelectedFlower } from '../types';
 import { PlusIcon, MinusIcon } from './Icons';
@@ -11,17 +12,6 @@ interface FlowerSelectorProps {
   onToggle: () => void;
 }
 
-const colorToClassMap: { [key: string]: string } = {
-    'Rojo': 'bg-red-500',
-    'Blanco': 'bg-white border border-gray-400',
-    'Rosa': 'bg-pink-400',
-    'Amarillo': 'bg-yellow-400',
-    'Melón': 'bg-orange-300',
-    'Ros Bebé': 'bg-pink-200',
-    'Morado': 'bg-purple-500',
-    'Azul': 'bg-blue-500'
-};
-
 const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, selectedFlowers, onQuantityChange, isOpen, onToggle }) => {
   const findInitialSelected = () => {
     for (const variety of varieties) {
@@ -32,14 +22,19 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
     return varieties[0];
   };
 
-  const [activeVariety, setActiveVariety] = useState<Flower>(findInitialSelected());
+  const [activeVariety, setActiveVariety] = useState<Flower>(varieties[0]);
 
   useEffect(() => {
-    if (!isOpen) {
+    // Ensure activeVariety is set once varieties are loaded
+    if (varieties.length > 0) {
         setActiveVariety(findInitialSelected());
     }
-  }, [isOpen, selectedFlowers]);
+  }, [isOpen, selectedFlowers, varieties]);
 
+
+  if (!activeVariety) {
+    return null; // or a loading/placeholder state
+  }
 
   const quantity = selectedFlowers.get(activeVariety.id)?.quantity || 0;
 
@@ -59,12 +54,11 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
   
   const totalInType = varieties.reduce((sum, v) => sum + (selectedFlowers.get(v.id)?.quantity || 0), 0);
   
-  const backgroundImageURL = 'https://img.freepik.com/foto-gratis/primer-plano-rosa-roja-rocio-parte-superior-negra_181624-28079.jpg?semt=ais_hybrid&w=740&q=80';
+  const backgroundImageURL = varieties[0]?.background_image;
 
   return (
     <div className="relative border border-white/10 rounded-2xl transition-all duration-300 overflow-hidden">
-        {/* Background image for glass effect */}
-        {isOpen && (
+        {isOpen && backgroundImageURL && (
             <div 
                 className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
                 style={{ backgroundImage: `url(${backgroundImageURL})` }}
@@ -74,10 +68,9 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
         )}
 
         <div className={`relative transition-colors duration-300 ${isOpen ? 'bg-transparent' : 'bg-[#2a2e3c]/80'}`}>
-            {/* Header */}
             <button onClick={onToggle} className="w-full p-4 flex items-center gap-4 text-left">
                 <div className="relative">
-                    <img src={varieties[0].image} alt={flowerName} className="w-10 h-10 rounded-full object-cover border-2 border-white/50 shadow-sm" />
+                    <img src={varieties[0]?.image} alt={flowerName} className="w-10 h-10 rounded-full object-cover border-2 border-white/50 shadow-sm" />
                     {totalInType > 0 && (
                         <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-[10px] font-bold border-2 border-[#2a2e3c]">
                           {totalInType}
@@ -90,20 +83,20 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
                 </div>
             </button>
 
-            {/* Body */}
             <div className={`transition-all duration-500 ease-in-out grid ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                     <div className="px-4 pb-4">
                         <div className="min-h-[120px] sm:min-h-[150px] flex flex-col justify-end space-y-4">
-                            {/* Color Selectors */}
                             <div className="flex items-center gap-3 flex-wrap justify-center">
                                 {varieties.map(variety => {
                                     const varietyQuantity = selectedFlowers.get(variety.id)?.quantity || 0;
+                                    const isWhite = variety.hex_color.toUpperCase() === '#FFFFFF';
                                     return (
                                         <button
                                           key={variety.id}
                                           onClick={() => handleColorClick(variety)}
-                                          className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full transition-all duration-200 flex-shrink-0 focus:outline-none ${colorToClassMap[variety.color] || 'bg-gray-300'} ${activeVariety.id === variety.id ? 'ring-4 ring-offset-2 ring-offset-transparent ring-white' : 'hover:scale-110'}`}
+                                          className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full transition-all duration-200 flex-shrink-0 focus:outline-none ${activeVariety.id === variety.id ? 'ring-4 ring-offset-2 ring-offset-transparent ring-white' : 'hover:scale-110'} ${isWhite ? 'border border-gray-400' : ''}`}
+                                          style={{ backgroundColor: variety.hex_color }}
                                           aria-label={`Seleccionar ${flowerName} color ${variety.color}`}
                                         >
                                           {varietyQuantity > 0 && (
@@ -116,7 +109,6 @@ const FlowerSelector: React.FC<FlowerSelectorProps> = ({ flowerName, varieties, 
                                 })}
                             </div>
 
-                            {/* Stepper */}
                             <div className="flex items-center justify-center gap-2 bg-[#1E212B]/70 p-2 rounded-lg">
                                 <button onClick={decrement} className="w-10 h-10 rounded-md text-white/80 hover:bg-white/20 transition disabled:opacity-50 flex items-center justify-center" disabled={quantity === 0} aria-label="Disminuir cantidad">
                                     <MinusIcon className="w-5 h-5" />

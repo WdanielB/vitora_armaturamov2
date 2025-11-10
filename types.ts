@@ -13,6 +13,8 @@ export interface Flower {
   color: string;
   price: number;
   image: string;
+  hex_color: string;
+  background_image: string;
 }
 
 export interface Foliage {

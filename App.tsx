@@ -1,15 +1,27 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { BouquetType, Flower, Foliage, SelectedFlower } from './types';
-import { bouquetsData, flowersData, foliageData } from './data/mockData';
 import Header from './components/Header';
 import SectionWrapper from './components/SectionWrapper';
 import ItemCard from './components/ItemCard';
 import DedicationPreviewModal from './components/DedicationPreviewModal';
 import SummaryModal from './components/SummaryModal';
-import { SpotifyIcon, LinkIcon, InfoIcon, ShoppingCartIcon, TagIcon, PlusIcon, MinusIcon } from './components/Icons';
+import { SpotifyIcon, LinkIcon, InfoIcon, ShoppingCartIcon, TagIcon } from './components/Icons';
 import FlowerSelector from './components/FlowerSelector';
 
+// IMPORTANTE: Reemplaza esta URL con la URL de tu aplicación web de Google Apps Script.
+// OBTENLA DEL PASO 6 DE LAS INSTRUCCIONES DE CONFIGURACIÓN DEL BACKEND que te proporcioné.
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybSjsBMqPN5aEB6FMDzKlBTEeK8xje2LdYsIR7y-CXRpvI00uGJ-uOaPuBUMq5SWtKkA/exec';
+
 const App: React.FC = () => {
+    // Data states
+    const [bouquetsData, setBouquetsData] = useState<BouquetType[]>([]);
+    const [flowersData, setFlowersData] = useState<Flower[]>([]);
+    const [foliageData, setFoliageData] = useState<Foliage[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // App logic states
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedBouquet, setSelectedBouquet] = useState<BouquetType | null>(null);
     const [selectedFlowers, setSelectedFlowers] = useState<Map<string, SelectedFlower>>(new Map());
@@ -18,9 +30,44 @@ const App: React.FC = () => {
     const [spotifyLink, setSpotifyLink] = useState('');
     const [totalPrice, setTotalPrice] = useState<number | null>(null);
     const [openFlower, setOpenFlower] = useState<string | null>(null);
-
     const [isDedicationModalOpen, setDedicationModalOpen] = useState(false);
     const [isSummaryModalOpen, setSummaryModalOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Usamos POST para obtener los datos y evitar problemas de CORS con Google Apps Script.
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify({ action: 'getData' }),
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Comprobamos si el script devolvió un error en su respuesta.
+                if (data.status === 'error') {
+                    throw new Error(`Error del script: ${data.message}`);
+                }
+
+                setBouquetsData(data.bouquetsData || []);
+                setFlowersData(data.flowersData || []);
+                setFoliageData(data.foliageData || []);
+            } catch (e) {
+                console.error("Failed to fetch data:", e);
+                setError('No se pudieron cargar los productos. Asegúrate de que la URL del Apps Script es correcta y está implementada correctamente.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
     
     const groupedFlowers = useMemo(() => {
         return flowersData.reduce((acc, flower) => {
@@ -31,7 +78,7 @@ const App: React.FC = () => {
             acc[key].push(flower);
             return acc;
         }, {} as Record<string, Flower[]>);
-    }, []);
+    }, [flowersData]);
 
     const handleToggleFlower = (name: string) => {
         setOpenFlower(prev => (prev === name ? null : name));
@@ -109,6 +156,13 @@ const App: React.FC = () => {
       totalPrice
     }), [selectedBouquet, selectedFlowers, selectedFoliage, dedication, spotifyLink, totalPrice]);
 
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center text-xl font-semibold">Cargando productos...</div>;
+    }
+
+    if (error) {
+        return <div className="min-h-screen flex items-center justify-center text-xl text-red-400 p-4 text-center">{error}</div>;
+    }
 
     return (
         <div className="min-h-screen">
@@ -209,7 +263,6 @@ const App: React.FC = () => {
                 </div>
             </main>
             
-            {/* Navigation / Final Actions */}
             <div className="fixed bottom-0 left-0 right-0 mt-16 py-4 bg-[#1E212B]/80 backdrop-blur-md border-t border-white/20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
                     <div>
@@ -280,6 +333,7 @@ const App: React.FC = () => {
                 isOpen={isSummaryModalOpen}
                 onClose={() => setSummaryModalOpen(false)}
                 summary={summaryData}
+                apiUrl={APPS_SCRIPT_URL}
             />
         </div>
     );

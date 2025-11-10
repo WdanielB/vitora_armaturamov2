@@ -16,24 +16,59 @@ interface SummaryModalProps {
     isOpen: boolean;
     onClose: () => void;
     summary: SummaryData;
+    apiUrl: string;
 }
 
-const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary }) => {
+const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, apiUrl }) => {
     const [phone, setPhone] = useState('');
     const [deliveryDate, setDeliveryDate] = useState('');
+    const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Here you would typically send the data to a backend or via WhatsApp API
-        console.log("Pedido enviado:", {
-            ...summary,
+        setSubmitting(true);
+        setSubmitError(null);
+
+        const payload = {
             phone,
-            deliveryDate
-        });
-        setSubmitted(true);
+            deliveryDate,
+            summary
+        };
+
+        try {
+            // Este es el método más robusto para enviar datos a Apps Script desde un navegador.
+            // Se envía como text/plain para evitar la comprobación CORS "preflight".
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                redirect: "follow",
+                body: JSON.stringify(payload),
+                headers: {
+                  "Content-Type": "text/plain;charset=utf-8",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                setSubmitted(true);
+            } else {
+                throw new Error(result.message || 'El servidor devolvió un error.');
+            }
+
+        } catch (error) {
+            console.error("Error submitting request:", error);
+            setSubmitError("Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -99,8 +134,9 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary })
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" className="w-full mt-6 bg-[#DCBBA0] text-gray-800 font-bold py-3 rounded-lg hover:brightness-95 transition">
-                            Enviar Solicitud
+                        {submitError && <p className="text-red-400 text-sm mt-4 text-center">{submitError}</p>}
+                        <button type="submit" disabled={submitting} className="w-full mt-6 bg-[#DCBBA0] text-gray-800 font-bold py-3 rounded-lg hover:brightness-95 transition disabled:opacity-50">
+                            {submitting ? 'Enviando...' : 'Enviar Solicitud'}
                         </button>
                     </form>
                 </>
