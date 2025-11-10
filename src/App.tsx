@@ -6,7 +6,7 @@ import SectionWrapper from './components/SectionWrapper';
 import ItemCard from './components/ItemCard';
 import DedicationPreviewModal from './components/DedicationPreviewModal';
 import SummaryModal from './components/SummaryModal';
-import { SpotifyIcon, LinkIcon, InfoIcon, ShoppingCartIcon, TagIcon, CheckCircleIcon } from './components/Icons';
+import { SpotifyIcon, InfoIcon, ShoppingCartIcon, TagIcon, CheckCircleIcon } from './components/Icons';
 import FlowerSelector from './components/FlowerSelector';
 
 const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
