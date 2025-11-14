@@ -33,11 +33,33 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         setSubmitting(true);
         setSubmitError(null);
 
+        // Limpiar datos de flores para excluir campos de imagen
+        const flores_seleccionadas = summary.flowers.map(({ item, quantity }) => ({
+            cantidad: quantity,
+            numero: item.name,
+            color: item.color,
+            precio_unitario: item.price,
+        }));
+
+        // Limpiar datos de follaje para excluir campos de imagen
+        const follaje_seleccionado = summary.foliage.map(item => ({
+            cantidad: 1, // El follaje es una selección única
+            numero: item.name,
+            color: 'N/A', // El follaje no tiene propiedad de color
+            precio_unitario: item.price,
+        }));
+
+        // Construir el payload final y plano para la hoja de cálculo
         const payload = {
             name_cliente: name,
-            phone,
-            deliveryDate,
-            summary
+            telefono: phone,
+            fecha_entrega: deliveryDate,
+            ramo_seleccionado: summary.bouquet?.name ?? 'N/A',
+            flores_seleccionadas: JSON.stringify(flores_seleccionadas),
+            follaje_seleccionado: JSON.stringify(follaje_seleccionado),
+            dedicatoria: summary.dedication || 'N/A',
+            spotify_link: summary.spotifyLink || 'N/A',
+            precio_total: summary.totalPrice?.toFixed(2) ?? '0.00'
         };
 
         try {
@@ -57,7 +79,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
             const result = await response.json();
             
             if (result.status === 'success') {
-                onSuccess(); // Call the parent success handler
+                onSuccess();
             } else {
                 throw new Error(result.message || 'El servidor devolvió un error.');
             }
