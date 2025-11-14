@@ -42,6 +42,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
 
         const follaje_seleccionado_array = summary.foliage.map(f => ({
             cantidad: 1,
+            color: 'N/A',
             numero: f.name,
             precio_unitario: f.price,
         }));
