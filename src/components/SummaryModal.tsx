@@ -30,34 +30,14 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitting(true);
         setSubmitError(null);
 
-        if (!name.trim() || !phone.trim() || !deliveryDate) {
-            setSubmitError("Por favor, completa todos los campos.");
-            return;
-        }
-
-        const phoneRegex = /^[+]?[(]?[0-9\s-]{6,15}[)]?$/;
-        if (!phoneRegex.test(phone)) {
-            setSubmitError("Por favor, introduce un número de teléfono válido.");
-            return;
-        }
-        
-        setSubmitting(true);
-
-        // This payload structure is specifically tailored to what the Google Apps Script expects.
         const payload = {
             name_cliente: name,
-            phone: phone,
-            deliveryDate: deliveryDate,
-            summary: {
-                bouquet: summary.bouquet,
-                flowers: summary.flowers,
-                foliage: summary.foliage,
-                dedication: summary.dedication || 'N/A',
-                spotifyLink: summary.spotifyLink || 'N/A',
-                totalPrice: summary.totalPrice
-            }
+            phone,
+            deliveryDate,
+            summary
         };
 
         try {
@@ -70,37 +50,21 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
                 },
             });
 
-            // First, try to get the response as JSON, which is the expected format
-            try {
-                const result = await response.json();
-                
-                if (response.ok) {
-                    if (result.status === 'success') {
-                        onSuccess();
-                    } else {
-                        // The server responded OK but with a business logic error
-                        throw new Error(result.message || 'El servidor devolvió un error inesperado.');
-                    }
-                } else {
-                    // The server responded with an error code (4xx, 5xx)
-                    throw new Error(result.message || `Error del servidor: ${response.status}`);
-                }
-            } catch (jsonError) {
-                // If JSON parsing fails, the response is not valid JSON.
-                // It could be an HTML error (like a 404 page) or plain text.
-                const errorText = await response.text();
-                throw new Error(errorText || `La respuesta del servidor no es válida. Estado: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                onSuccess(); // Call the parent success handler
+            } else {
+                throw new Error(result.message || 'El servidor devolvió un error.');
             }
 
         } catch (error) {
             console.error("Error submitting request:", error);
-            const errorMessage = error instanceof Error ? error.message : "Hubo un error al enviar tu solicitud.";
-            
-            if (errorMessage.toLowerCase().includes('failed to fetch')) {
-                 setSubmitError("Error de conexión. Revisa tu internet e inténtalo de nuevo.");
-            } else {
-                 setSubmitError(errorMessage);
-            }
+            setSubmitError("Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo.");
         } finally {
             setSubmitting(false);
         }
