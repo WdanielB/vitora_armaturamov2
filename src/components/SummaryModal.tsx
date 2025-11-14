@@ -32,13 +32,11 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         e.preventDefault();
         setSubmitError(null);
 
-        // Validación de campos del formulario
         if (!name.trim() || !phone.trim() || !deliveryDate) {
             setSubmitError("Por favor, completa todos los campos.");
             return;
         }
 
-        // Validación básica de formato de teléfono
         const phoneRegex = /^[+]?[(]?[0-9\s-]{6,15}[)]?$/;
         if (!phoneRegex.test(phone)) {
             setSubmitError("Por favor, introduce un número de teléfono válido.");
@@ -47,7 +45,6 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         
         setSubmitting(true);
 
-        // Mapeo robusto de datos para flores y follaje
         const flores_seleccionadas = summary.flowers.map(({ item, quantity }) => ({
             cantidad: quantity ?? 1,
             numero: item?.name ?? 'Desconocido',
@@ -85,7 +82,8 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
             });
 
             if (!response.ok) {
-                throw new Error(`Error del servidor: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(errorText || `Error del servidor: ${response.status}`);
             }
 
             const result = await response.json();
@@ -93,12 +91,18 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
             if (result.status === 'success') {
                 onSuccess();
             } else {
-                throw new Error(result.message || 'El servidor devolvió un error.');
+                throw new Error(result.message || 'El servidor devolvió un error pero no especificó la causa.');
             }
 
         } catch (error) {
             console.error("Error submitting request:", error);
-            setSubmitError("Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo.");
+            const errorMessage = error instanceof Error ? error.message : "Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo.";
+            
+            if (errorMessage.includes('Failed to fetch')) {
+                 setSubmitError("Error de conexión. Por favor, revisa tu internet e inténtalo de nuevo.");
+            } else {
+                 setSubmitError(errorMessage);
+            }
         } finally {
             setSubmitting(false);
         }
