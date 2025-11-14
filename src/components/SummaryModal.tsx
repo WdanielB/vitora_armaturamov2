@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BouquetType, Foliage, SelectedFlower } from '../types';
 import { CalendarIcon, PhoneIcon, XIcon, UserIcon } from './Icons';
@@ -43,23 +42,23 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
             ramo_seleccionado: summary.bouquet?.name ?? 'N/A',
             flores_seleccionadas: JSON.stringify(
                 summary.flowers.map(f => ({
-                    cantidad: f.quantity,
-                    numero: f.item.name,
-                    color: f.item.color,
-                    precio_unitario: f.item.price
+                    cantidad: f.quantity || 1,
+                    numero: f.item?.name || 'Flor desconocida',
+                    color: f.item?.color || 'N/A',
+                    precio_unitario: f.item?.price ?? 0
                 }))
             ),
             follaje_seleccionado: JSON.stringify(
                 summary.foliage.map(f => ({
                     cantidad: 1,
-                    numero: f.name,
+                    numero: f.name || 'Follaje desconocido',
                     color: 'N/A',
-                    precio_unitario: f.price
+                    precio_unitario: f.price ?? 0
                 }))
             ),
-            dedicatoria: summary.dedication,
-            spotify_link: summary.spotifyLink,
-            precio_total: summary.totalPrice
+            dedicatoria: summary.dedication || '',
+            spotify_link: summary.spotifyLink || '',
+            precio_total: summary.totalPrice ?? 0
         };
 
         try {
