@@ -36,16 +36,3 @@ export interface SelectedFlower {
   item: Flower;
   quantity: number;
 }
-
-export interface Solicitud {
-  timestamp: string;
-  name_cliente: string;
-  telefono: string;
-  fecha_entrega: string;
-  ramo_seleccionado: string;
-  flores_seleccionadas: string; // JSON string
-  follaje_seleccionado: string; // JSON string
-  dedicatoria: string;
-  spotify_link: string;
-  precio_total: number;
-}
