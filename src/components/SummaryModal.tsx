@@ -36,13 +36,13 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         const flores_seleccionadas = summary.flowers.map(f => ({
             cantidad: f.quantity,
             color: f.item.color,
-            nombre: f.item.name, // "numero" interpretado como nombre
+            numero: f.item.name,
             precio_unitario: f.item.price,
         }));
 
         const follaje_seleccionado = summary.foliage.map(f => ({
             cantidad: 1,
-            nombre: f.name, // "numero" interpretado como nombre
+            numero: f.name,
             precio_unitario: f.price,
         }));
 
