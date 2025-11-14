@@ -33,11 +33,34 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         setSubmitting(true);
         setSubmitError(null);
 
+        const flores_seleccionadas = summary.flowers.map(f => ({
+            cantidad: f.quantity,
+            color: f.item.color,
+            nombre: f.item.name, // "numero" interpretado como nombre
+            precio_unitario: f.item.price,
+        }));
+
+        const follaje_seleccionado = summary.foliage.map(f => ({
+            cantidad: 1,
+            nombre: f.name, // "numero" interpretado como nombre
+            precio_unitario: f.price,
+        }));
+
         const payload = {
             name_cliente: name,
             phone,
             deliveryDate,
-            summary
+            summary: {
+                ramo: summary.bouquet ? {
+                    nombre: summary.bouquet.name,
+                    precio: summary.bouquet.price
+                } : null,
+                flores_seleccionadas,
+                follaje_seleccionado,
+                dedicatoria: summary.dedication,
+                spotify: summary.spotifyLink,
+                precio_total: summary.totalPrice,
+            }
         };
 
         try {
