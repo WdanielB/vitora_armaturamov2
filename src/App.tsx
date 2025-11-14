@@ -200,6 +200,19 @@ const App: React.FC = () => {
         e.preventDefault();
         setSubmitting(true);
         setSubmitError(null);
+    
+        if (!name.trim() || !phone.trim() || !deliveryDate) {
+            setSubmitError("Por favor, completa todos los campos requeridos.");
+            setSubmitting(false);
+            return;
+        }
+    
+        const phoneRegex = /^[0-9+\-() ]{7,}$/;
+        if (!phoneRegex.test(phone)) {
+            setSubmitError("Por favor, introduce un número de teléfono válido.");
+            setSubmitting(false);
+            return;
+        }
 
         const payload = {
             action: 'saveData',
