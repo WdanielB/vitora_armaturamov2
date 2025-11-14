@@ -8,10 +8,17 @@ import DedicationPreviewModal from './components/DedicationPreviewModal';
 import SummaryModal from './components/SummaryModal';
 import { SpotifyIcon, InfoIcon, ShoppingCartIcon, TagIcon, CheckCircleIcon } from './components/Icons';
 import FlowerSelector from './components/FlowerSelector';
+import SolicitudesPage from './pages/SolicitudesPage';
 
 const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
 
 const App: React.FC = () => {
+    const path = window.location.pathname;
+
+    if (path === '/solicitudez') {
+        return <SolicitudesPage />;
+    }
+
     // Data states
     const [bouquetsData, setBouquetsData] = useState<BouquetType[]>([]);
     const [flowersData, setFlowersData] = useState<Flower[]>([]);

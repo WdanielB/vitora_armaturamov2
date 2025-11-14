@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BouquetType, Foliage, SelectedFlower } from '../types';
 import { CalendarIcon, PhoneIcon, XIcon, UserIcon } from './Icons';
@@ -34,10 +35,31 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
         setSubmitError(null);
 
         const payload = {
+            action: 'saveData',
+            timestamp: new Date().toISOString(),
             name_cliente: name,
-            phone,
-            deliveryDate,
-            summary
+            telefono: phone,
+            fecha_entrega: deliveryDate,
+            ramo_seleccionado: summary.bouquet?.name ?? 'N/A',
+            flores_seleccionadas: JSON.stringify(
+                summary.flowers.map(f => ({
+                    cantidad: f.quantity,
+                    numero: f.item.name,
+                    color: f.item.color,
+                    precio_unitario: f.item.price
+                }))
+            ),
+            follaje_seleccionado: JSON.stringify(
+                summary.foliage.map(f => ({
+                    cantidad: 1,
+                    numero: f.name,
+                    color: 'N/A',
+                    precio_unitario: f.price
+                }))
+            ),
+            dedicatoria: summary.dedication,
+            spotify_link: summary.spotifyLink,
+            precio_total: summary.totalPrice
         };
 
         try {
@@ -57,7 +79,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
             const result = await response.json();
             
             if (result.status === 'success') {
-                onSuccess(); // Call the parent success handler
+                onSuccess();
             } else {
                 throw new Error(result.message || 'El servidor devolvió un error.');
             }
