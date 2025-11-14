@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from 'react';
 import { BouquetType, Flower, Foliage, SelectedFlower } from './types';
 import Header from './components/Header';
@@ -6,7 +5,7 @@ import SectionWrapper from './components/SectionWrapper';
 import ItemCard from './components/ItemCard';
 import DedicationPreviewModal from './components/DedicationPreviewModal';
 import SummaryModal from './components/SummaryModal';
-import { SpotifyIcon, InfoIcon, ShoppingCartIcon, TagIcon, CheckCircleIcon } from './components/Icons';
+import { SpotifyIcon, InfoIcon, ShoppingCartIcon, TagIcon, CheckCircleIcon, UserIcon, PhoneIcon, CalendarIcon } from './components/Icons';
 import FlowerSelector from './components/FlowerSelector';
 import SolicitudesPage from './pages/SolicitudesPage';
 
@@ -38,6 +37,13 @@ const App: React.FC = () => {
     const [isDedicationModalOpen, setDedicationModalOpen] = useState(false);
     const [isSummaryModalOpen, setSummaryModalOpen] = useState(false);
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
+    // Form states
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [deliveryDate, setDeliveryDate] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!APPS_SCRIPT_URL) {
@@ -91,6 +97,11 @@ const App: React.FC = () => {
         setDedicationModalOpen(false);
         setSummaryModalOpen(false);
         setSubmissionSuccess(false);
+        setName('');
+        setPhone('');
+        setDeliveryDate('');
+        setSubmitting(false);
+        setSubmitError(null);
     };
 
     const handleSubmissionSuccess = () => {
@@ -184,6 +195,70 @@ const App: React.FC = () => {
       spotifyLink,
       totalPrice
     }), [selectedBouquet, selectedFlowers, selectedFoliage, dedication, spotifyLink, totalPrice]);
+    
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setSubmitError(null);
+
+        const payload = {
+            action: 'saveData',
+            timestamp: new Date().toISOString(),
+            name_cliente: name,
+            telefono: phone,
+            fecha_entrega: deliveryDate,
+            ramo_seleccionado: summaryData.bouquet?.name ?? 'N/A',
+            flores_seleccionadas: JSON.stringify(
+                summaryData.flowers.map(f => ({
+                    cantidad: f.quantity || 1,
+                    numero: f.item?.name || 'Flor desconocida',
+                    color: f.item?.color || 'N/A',
+                    precio_unitario: f.item?.price ?? 0
+                }))
+            ),
+            follaje_seleccionado: JSON.stringify(
+                summaryData.foliage.map(f => ({
+                    cantidad: 1,
+                    numero: f.name || 'Follaje desconocido',
+                    color: 'N/A',
+                    precio_unitario: f.price ?? 0
+                }))
+            ),
+            dedicatoria: summaryData.dedication || '',
+            spotify_link: summaryData.spotifyLink || '',
+            precio_total: summaryData.totalPrice ?? 0
+        };
+
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                redirect: "follow",
+                body: JSON.stringify(payload),
+                 headers: {
+                  "Content-Type": "text/plain;charset=utf-8",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                handleSubmissionSuccess();
+            } else {
+                throw new Error(result.message || 'El servidor devolvió un error.');
+            }
+
+        } catch (error) {
+            console.error("Error submitting request:", error);
+            setSubmitError("Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
 
     const renderNavigation = () => (
         <div className="mt-16 py-6 border-t border-white/20">
@@ -226,18 +301,18 @@ const App: React.FC = () => {
                                 }`}
                             >
                                 <ShoppingCartIcon className="w-5 h-5"/>
-                                Cotizar Ramo
+                                {totalPrice === null ? 'Cotizar Ramo' : 'Recalcular'}
                             </button>
                             <button
                                 onClick={() => setSummaryModalOpen(true)}
                                 disabled={!isReadyForRequest}
                                 className={`w-full sm:w-auto px-6 py-3 rounded-full font-semibold text-base transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 ${
                                     isReadyForRequest 
-                                    ? 'bg-[#DCBBA0] text-gray-800 font-bold shadow-lg hover:brightness-95'
+                                    ? 'bg-gray-800 text-gray-200 hover:bg-gray-700'
                                     : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                 }`}
                             >
-                                Solicitar Ramo
+                                Ver Resumen
                             </button>
                         </>
                     )}
@@ -363,6 +438,40 @@ const App: React.FC = () => {
                                 </div>
                             </div>
                              {renderNavigation()}
+                             {isReadyForRequest && (
+                                <div className="mt-12">
+                                    <div className="bg-[#2a2e3c]/80 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-white/20 shadow-lg">
+                                        <h3 className="text-2xl font-bold mb-6 text-gray-100">Completa tu solicitud para finalizar</h3>
+                                        <form onSubmit={handleSubmit} className="space-y-4">
+                                            <div>
+                                                <label htmlFor="name" className="block text-sm font-medium text-gray-300">Nombres</label>
+                                                <div className="relative mt-1">
+                                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                    <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} required className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-600 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-[#DCBBA0] focus:border-[#DCBBA0] transition" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label htmlFor="phone" className="block text-sm font-medium text-gray-300">Número de Teléfono</label>
+                                                <div className="relative mt-1">
+                                                    <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                    <input type="tel" id="phone" value={phone} onChange={e => setPhone(e.target.value)} required className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-600 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-[#DCBBA0] focus:border-[#DCBBA0] transition" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label htmlFor="date" className="block text-sm font-medium text-gray-300">Día de Entrega</label>
+                                                <div className="relative mt-1">
+                                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                    <input type="date" id="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} required className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-600 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-[#DCBBA0] focus:border-[#DCBBA0] transition" style={{colorScheme: 'dark'}}/>
+                                                </div>
+                                            </div>
+                                            {submitError && <p className="text-red-400 text-sm pt-2 text-center">{submitError}</p>}
+                                            <button type="submit" disabled={submitting} className="w-full !mt-8 bg-[#DCBBA0] text-gray-800 font-bold py-3 rounded-lg hover:brightness-95 transition disabled:opacity-50">
+                                                {submitting ? 'Enviando...' : 'Enviar Solicitud'}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                             )}
                         </SectionWrapper>
                     )}
                 </div>
@@ -379,8 +488,6 @@ const App: React.FC = () => {
                 isOpen={isSummaryModalOpen}
                 onClose={() => setSummaryModalOpen(false)}
                 summary={summaryData}
-                apiUrl={APPS_SCRIPT_URL}
-                onSuccess={handleSubmissionSuccess}
             />
         </div>
     );
