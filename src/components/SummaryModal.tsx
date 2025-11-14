@@ -30,26 +30,38 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ isOpen, onClose, summary, a
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitting(true);
         setSubmitError(null);
 
-        // Limpiar datos de flores para excluir campos de imagen
+        // Validación de campos del formulario
+        if (!name.trim() || !phone.trim() || !deliveryDate) {
+            setSubmitError("Por favor, completa todos los campos.");
+            return;
+        }
+
+        // Validación básica de formato de teléfono
+        const phoneRegex = /^[+]?[(]?[0-9\s-]{6,15}[)]?$/;
+        if (!phoneRegex.test(phone)) {
+            setSubmitError("Por favor, introduce un número de teléfono válido.");
+            return;
+        }
+        
+        setSubmitting(true);
+
+        // Mapeo robusto de datos para flores y follaje
         const flores_seleccionadas = summary.flowers.map(({ item, quantity }) => ({
-            cantidad: quantity,
-            numero: item.name,
-            color: item.color,
-            precio_unitario: item.price,
+            cantidad: quantity ?? 1,
+            numero: item?.name ?? 'Desconocido',
+            color: item?.color ?? 'Desconocido',
+            precio_unitario: item?.price ?? 0,
         }));
 
-        // Limpiar datos de follaje para excluir campos de imagen
         const follaje_seleccionado = summary.foliage.map(item => ({
-            cantidad: 1, // El follaje es una selección única
-            numero: item.name,
-            color: 'N/A', // El follaje no tiene propiedad de color
-            precio_unitario: item.price,
+            cantidad: 1,
+            numero: item?.name ?? 'Desconocido',
+            color: 'N/A',
+            precio_unitario: item?.price ?? 0,
         }));
 
-        // Construir el payload final y plano para la hoja de cálculo
         const payload = {
             name_cliente: name,
             telefono: phone,
